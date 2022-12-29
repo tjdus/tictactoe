@@ -24,6 +24,7 @@ clock = pygame.time.Clock()
 font_name = pygame.font.match_font('arial')
 font= pygame.font.SysFont(font_name, 150, False, False)
 tfont = pygame.font.SysFont(font_name, 150, False, False)
+afont = pygame.font.SysFont(font_name, 50, False, False)
 
 def DrawBoard(board):
     for i in range(2):
@@ -33,9 +34,23 @@ def DrawBoard(board):
     for i in range(3):
         for j in range(3):
             b= font.render(board[i*3+j], True, BLACK)
-            screen.blit(b, [110+i*length, 180+j*length])
+            screen.blit(b, [110+j*length, 180+i*length])
 
-            
+def playagainscreen(winner):
+    screen.fill(WHITE)
+    text = afont.render("Do you want to play again?", True, BLACK)
+    screen.blit(text, [50, 200])
+    text = tfont.render("Yes or No", True, BLACK)
+    screen.blit(text, [50, 300])
+    if winner=='player':
+        text = tfont.render("You Win!", True, RED)
+        screen.blit(text, [50, 50])
+    elif winner=='computer':
+        text = tfont.render("You Lose!", True, RED)
+        screen.blit(text, [50, 50])
+    else:
+        text = tfont.render("Tie!", True, RED)
+        screen.blit(text, [200, 50])
 def makeMove(board, letter, move):
     board[move] = letter
 
@@ -58,66 +73,6 @@ def Result(board, letter):
     (board[6] == board[4] and board[4]==board[2] and board[2] == letter) or \
     (board[8] == board[4] and board[4]==board[0] and board[0] == letter) or \
     (board[6] == board[7] and board[7]==board[8] and board[8] == letter) 
-
-def GetPlayerMove(board):
-    move = 10
-    while True:
-        while move==10:
-            for event in pygame.event.get():
-                '''
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_1:
-                        move= 1
-                    elif event.key == pygame.K_2:
-                        move= 2
-                    elif event.key == pygame.K_3:
-                        move= 3
-                    elif event.key == pygame.K_4:
-                        move= 4
-                    elif event.key == pygame.K_5:
-                        move= 5
-                    elif event.key == pygame.K_6:
-                        move= 6
-                    elif event.key == pygame.K_7:
-                        move= 7
-                    elif event.key == pygame.K_8:
-                        move= 8
-                    elif event.key == pygame.K_9:
-                        move= 9
-                    else:
-                        move==10
-                '''
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    x,y = pygame.mouse.get_pos()
-                    if x>=75 and x<=525 and y>=150 and y<=600:
-                        if x<225:
-                            if y<300:
-                                move=7
-                            elif y<450:
-                                move=4
-                            else:
-                                move=1
-                        elif x<375:
-                            if y<300:
-                                move=8
-                            elif y<450:
-                                move=5
-                            else:
-                                move=2
-                        else:
-                            if y<525:
-                                move=9
-                            elif y<450:
-                                move=6
-                            else:
-                                move=3
-                    else:
-                        move= 10        
-                
-        if IsEmpty(board, move-1):
-            return move-1
-        else:
-            move=10
             
             
 def RandomMove(board, movelist):
@@ -163,63 +118,118 @@ def IsBoardFull(board):
             return False
     return True
 
+
 done = False
 
 board=[' '] * 9
+getinput = False
 
+move=-1
+player = 'O'
+computer = 'X'
+winner=None   
+turn = 'player'
+gameIsplaying =True
+playagain = False
+screen.fill(WHITE)
 
 # 게임 반복 구간
 while not done:
-    screen.fill(WHITE)
-    # 이벤트 반복 구간
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            done = True
-    player = 'O'
-    computer = 'X'
     
-    turn = 'player'
-    gameIsplaying =True
-    while gameIsplaying:
-        if turn == 'player':
-            move = GetPlayerMove(board)
-            makeMove(board, player, move)
-            
-            if Result(board, player):
-                DrawBoard(board)
-                text = tfont.render("You Win!", True, RED)
-                screen.blit(text, [50, 50])
-                gameIsplaying = False
-    
-            else:
-                if IsBoardFull(board):
-                    DrawBoard(board)   
-                    text = tfont.render("Tie!", True, RED)
-                    screen.blit(text, [200, 50])
-                    break
+    if not playagain:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                done = True
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                x,y= pygame.mouse.get_pos()
+                if x>=75 and x<=525 and y>=150 and y<=600:
+                    if x<225:
+                        if y<300:
+                            move=0
+                        elif y<450:
+                            move=3
+                        else:
+                            move=6
+                    elif x<375:
+                        if y<300:
+                            move=1
+                        elif y<450:
+                            move=4
+                        else:
+                            move=7
+                    else:
+                        if y<300:
+                            move=2
+                        elif y<450:
+                            move=5
+                        else:
+                            move=8
                 else:
-                    turn = 'computer'
-        else:
-            move= GetComputerMove(board, computer)
-            makeMove(board, computer, move)
-            
-            if Result(board, computer):
-                DrawBoard(board)
-                text = tfont.render("You Lose!", True, RED)
-                screen.blit(text, [50, 50])
-                gameIsplaying=False
+                    move= -1      
+        if move!=-1:
+            if IsEmpty(board, move):
+                getinput=True
             else:
-                if IsBoardFull(board):
-                    DrawBoard(board)
-                    text = tfont.render("Tie!", True, RED)
-                    screen.blit(text, [200, 50])
-                    break
-                else:
-                    turn = 'player'
+                move=-1 
+        
+        while gameIsplaying:
+            if turn == 'player' and getinput:
 
+                makeMove(board, player, move) 
+                getinput=False   
+                if Result(board, player):
+                    gameIsplaying = False
+                    playagain=True   
+                    winner = 'player'                    
+                else:
+                    if IsBoardFull(board):
+                        gameIsplaying=False
+                        playagain=True
+                        break
+                    else:
+                        turn = 'computer' 
+            elif turn == 'computer':
+                move= GetComputerMove(board, computer)
+                makeMove(board, computer, move)
+                move=-1
+                if Result(board, computer):
+                    winner ='computer'                    
+                    gameIsplaying=False
+                    playagain=True
+                else:
+                    if IsBoardFull(board):
+                        gameIsplaying=False
+                        playagain=True
+                        break
+                    else:
+                        turn = 'player'
+            else:
+                break
+        screen.fill(WHITE)
+        DrawBoard(board)    
+    else:
+        playagainscreen(winner)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                done = True
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                x,y= pygame.mouse.get_pos()
+                if x<300:
+                    playagain=True
+                    board=[' ']*9
+                    getinput = False
+                    move=-1
+                    player = 'O'
+                    computer = 'X'
+                        
+                    turn = 'player'
+                    gameIsplaying =True
+                    playagain = False
+                    
+                else:
+                    done=True
     # 윈도우 화면 채우기
     
-    DrawBoard(board)
     # 화면에 텍스트 표시
 
     # 화면 업데이트
